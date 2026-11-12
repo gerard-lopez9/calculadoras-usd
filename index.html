@@ -4,31 +4,79 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Calculadoras de deuda e hipoteca</title>
 <style>
-:root{color-scheme:light;--bg:#f2f6fa;--surface:#ffffff;--field:#f5f9fc;--ink:#203e55;--secondary:#47637a;--line:#c1d3e1;--accent:#00669b;--glass:#fffffff5;--card:#e5f3fb;--card-text:#355973;--action:#00669b;--selection:#dfedf7;--selected-ink:#005d8b;--focus:#0076ad;--amount:#005d8b}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:24px 18px calc(108px + env(safe-area-inset-bottom))}header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:26px;color:var(--secondary);font-weight:650;font-size:.88rem}h1,h2,h3,p{margin:0}h1{font-size:clamp(2.25rem,6vw,4rem);letter-spacing:-.058em;line-height:1.04}section>h1,section>small,section>details{grid-column:1/-1}section:not([hidden]){display:grid;grid-template-columns:minmax(0,1.45fr) minmax(300px,1fr);gap:18px;align-items:start}h3{font-size:.88rem;color:var(--secondary);font-weight:650;margin:0 0 8px 4px}
-nav{position:fixed;z-index:4;bottom:calc(10px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(360px,calc(100% - 28px));display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:5px;border:1px solid var(--line);border-radius:27px;background:var(--glass);backdrop-filter:blur(16px);box-shadow:0 3px 16px #40678025}button,input,select{font:inherit;color:inherit;min-height:44px}button{cursor:pointer;border:0;background:var(--field);border-radius:12px;padding:9px 13px;font-weight:650}nav button{display:grid;place-items:center;align-content:center;gap:2px;min-height:55px;background:transparent;border-radius:21px;color:var(--secondary);font-size:.73rem}nav button[aria-pressed=true]{background:var(--selection);color:var(--selected-ink)}.tab-icon{font-size:1.25rem;line-height:1}.primary{background:var(--action);color:#fff;width:100%}button:active{transform:scale(.97)}button{transition:transform .14s ease} :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
-form,output,details{min-width:0}form>p{margin-top:12px}.grid{display:grid;background:var(--surface);border-radius:18px;padding:0 15px}form h3:not(:first-child){margin-top:22px}.grid label{display:grid;grid-template-columns:minmax(0,1fr) minmax(95px,44%);align-items:center;gap:8px;min-height:54px;font-size:.91rem}.grid label+label{border-top:1px solid var(--line)}input,select{width:100%;min-width:0;border:0;border-radius:9px;background:var(--field);padding:7px 8px;font-variant-numeric:tabular-nums}input[type=number]{text-align:right}input[type=date]{font-size:.83rem}select{font-size:.83rem}.scroll{overflow:auto;max-width:100%}
-#debtForm table,#debtForm tbody{display:block}#debtForm thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}#debtForm tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:13px;background:var(--surface);border-radius:18px;margin-bottom:8px}#debtForm td{padding:0;text-align:left;border:0;min-width:0}#debtForm td:first-child{grid-column:span 2;grid-row:1}#debtForm td:last-child{grid-column:3;grid-row:1;justify-self:end;align-self:end}#debtForm td:last-child button{color:var(--secondary);font-size:.84rem}#debtForm .grid{margin-top:12px}#add{background:var(--surface);color:var(--accent);width:100%}.field-caption{display:block;font-size:.72rem;font-weight:650;color:var(--secondary);margin-bottom:4px;white-space:normal}
-output{display:block;background:var(--card);color:var(--ink);border-radius:25px;padding:20px;box-shadow:0 3px 10px #40678014;scroll-margin-top:16px}output p,output li{color:var(--card-text);font-size:.85rem}output h3{color:var(--ink);margin:16px 0 5px}output ol{padding-left:20px;margin:0}.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}.stats div{font-size:.77rem;color:var(--card-text)}.stats div:first-child{grid-column:1/-1;padding-bottom:13px;border-bottom:1px solid var(--line)}.stats strong{display:block;font-size:1.14rem;color:var(--ink);overflow-wrap:anywhere;font-variant-numeric:tabular-nums}.stats div:first-child strong{font-size:clamp(2rem,5vw,3rem);line-height:1.15;letter-spacing:-.05em}
-details{border-radius:17px;background:var(--surface);padding:0 15px}summary{cursor:pointer;min-height:48px;padding-block:12px;font-weight:650}details p{color:var(--secondary);font-size:.85rem;margin-bottom:8px}table{border-collapse:collapse;width:100%;white-space:nowrap;font-variant-numeric:tabular-nums}th,td{text-align:right;padding:8px;border-bottom:1px solid var(--line)}th{font-size:.8rem;color:var(--secondary)}th:first-child,td:first-child{text-align:left}#schedule input{min-width:106px}.bar{height:6px;background:var(--field);border-radius:4px;overflow:hidden}.bar span{display:block;height:100%;background:var(--accent)}small{color:var(--secondary)}.summary-link{display:none}
-@media(min-width:761px){output{position:sticky;top:18px}}
-@media(max-width:760px){section:not([hidden]){grid-template-columns:minmax(0,1fr);gap:14px}.summary-link{display:inline-flex;align-items:center;min-height:44px;color:var(--accent);font-size:.87rem;font-weight:650;text-underline-offset:4px}.form-actions{display:grid;gap:4px}}
-@media(prefers-reduced-motion:reduce){button{transition:none}button:active{transform:none}}
-
-.payment-face{padding:8px 0 16px;border-bottom:1px solid var(--line);margin-bottom:16px}
-.payment-face span{display:block;color:var(--card-text);font-size:.83rem;font-weight:650}
-.payment-face strong{display:block;color:var(--ink);font-size:clamp(2rem,5vw,3.3rem);font-variant-numeric:tabular-nums;letter-spacing:-.06em;line-height:1.15;overflow-wrap:anywhere}
-.payment-face p{margin-top:6px}.payment-breakdown{margin:10px 0 16px;font-variant-numeric:tabular-nums}
-.payment-breakdown div{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--line);font-size:.82rem}
-.payment-breakdown dd{margin:0;text-align:right}.payment-breakdown dt{color:var(--card-text)}
-output .stats div:first-child{grid-column:auto;padding:0;border:0}
-output .stats div:first-child strong{font-size:1.14rem;letter-spacing:normal}
-.payment-breakdown dt{min-width:0;overflow-wrap:anywhere}.payment-breakdown dd{flex-shrink:0}.payment-breakdown small{display:block;color:var(--card-text)}
-input,select{border:1px solid var(--line)}
-.payment-face strong{letter-spacing:-.045em;color:var(--amount)}.payment-breakdown div{border-bottom-color:var(--line)}
-@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){nav{background:var(--surface);backdrop-filter:none}}
-@media(prefers-contrast:more){button,input,select{outline:1px solid currentColor;outline-offset:-1px}:focus-visible{outline:3px solid var(--focus);outline-offset:2px}}
-input,select{border-color:color-mix(in srgb,var(--ink) 50%,var(--surface))}.grid,#debtForm tr,details{border:1px solid var(--line)}
+:root{color-scheme:light;--green:#00d632;--paper:#f2f2ef;--white:#fff;--ink:#141414;--muted:#53534f;--line:#dfdfda;--field:#f7f7f5;--focus:#12612b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.45 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:1040px;margin:auto;padding:24px clamp(14px,4vw,38px) calc(112px + env(safe-area-inset-bottom))}
+header{display:flex;justify-content:space-between;gap:16px;margin-bottom:22px;font-size:.86rem;font-weight:700;color:var(--muted)}
+h1,h2,h3,p{margin:0}
+h1{font-size:clamp(2.5rem,7vw,4.75rem);font-weight:700;line-height:1;letter-spacing:-.065em}
+h3{font-size:1rem;margin:0 0 10px}
+section:not([hidden]){display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px;align-items:start;animation:arrive 320ms cubic-bezier(.18,.8,.26,1) both}
+section>h1,section>small,section>details{grid-column:1/-1}
+section>h1{margin-bottom:5px}
+nav{position:fixed;z-index:5;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));translate:-50% 0;width:min(360px,calc(100% - 24px));padding:5px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;background:#ffffffef;backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:32px;box-shadow:0 4px 20px #0002}
+button,input,select{font:inherit;color:inherit;min-height:46px}
+button{cursor:pointer;border:0;background:var(--paper);border-radius:999px;padding:8px 14px;font-weight:700;transition:transform 260ms cubic-bezier(.2,.85,.3,1.2),background-color 160ms ease}
+button:active{transform:scale(.96);transition-duration:85ms}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible,output:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+nav button{background:transparent;color:var(--muted);display:flex;gap:8px;align-items:center;justify-content:center;font-size:.88rem;min-height:52px}
+nav button[aria-pressed=true]{background:var(--green);color:var(--ink)}
+.tab-icon{font-size:1.15rem;line-height:1}
+.primary{width:100%;background:#141414;color:white;min-height:52px}
+#add{width:100%;background:var(--paper)}
+form,output,details{min-width:0}
+form{background:var(--white);border-radius:25px;padding:clamp(13px,2.4vw,23px)}
+form>p{margin-top:12px}
+form h3:not(:first-child){margin-top:19px;padding-top:16px;border-top:1px solid var(--line)}
+.grid{display:grid}
+.grid label{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,50%);align-items:center;gap:8px;min-height:58px;font-size:.9rem;font-weight:600}
+.grid label+label{border-top:1px solid var(--line)}
+input,select{width:100%;min-width:0;border:1px solid var(--line);border-radius:12px;background:var(--field);padding:7px 9px;font-variant-numeric:tabular-nums}
+input[type=number]{text-align:right}
+input[type=date],select{font-size:.85rem}
+.scroll{overflow:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;white-space:nowrap;font-variant-numeric:tabular-nums}
+th,td{text-align:right;padding:8px;border-bottom:1px solid var(--line)}
+th{font-size:.8rem;color:var(--muted)}
+th:first-child,td:first-child{text-align:left}
+#debtForm table,#debtForm tbody{display:block}
+#debtForm thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+#debtForm tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px;background:var(--paper);border-radius:17px;margin-bottom:8px}
+#debtForm td{padding:0;text-align:left;border:0;min-width:0}
+#debtForm td:first-child{grid-column:span 2;grid-row:1}
+#debtForm td:last-child{grid-column:3;grid-row:1;justify-self:end;align-self:end}
+#debtForm td:last-child button{background:var(--white);font-size:.83rem}
+#debtForm .grid{margin-top:10px}
+.field-caption{display:block;font-size:.74rem;font-weight:650;color:var(--muted);margin-bottom:4px;white-space:normal}
+output{display:block;background:var(--white);border-radius:25px;padding:clamp(13px,2.4vw,22px);scroll-margin-top:12px}
+.payment-face{background:var(--green);border-radius:20px;text-align:center;padding:19px 12px;margin-bottom:14px;animation:arrive 280ms cubic-bezier(.18,.8,.26,1) both}
+.payment-face span{display:block;font-size:.87rem;font-weight:650}
+.payment-face strong{display:block;font-size:clamp(1.85rem,5vw,3.55rem);font-weight:750;line-height:1.12;letter-spacing:-.065em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.payment-face p{margin:6px 0 0;color:var(--ink)}
+.payment-breakdown{margin:0 0 15px;font-variant-numeric:tabular-nums}
+.payment-breakdown div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.85rem}
+.payment-breakdown dt{min-width:0;overflow-wrap:anywhere}
+.payment-breakdown dd{margin:0;text-align:right;flex-shrink:0;font-weight:700}
+.payment-breakdown small{display:block}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.stats div{background:var(--paper);border-radius:13px;padding:8px;font-size:.75rem;color:var(--muted)}
+.stats strong{display:block;color:var(--ink);font-size:1.08rem;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+output h3{margin:14px 0 5px}
+output ol{padding-left:20px;margin:0}
+output p,output li,small{color:var(--muted);font-size:.84rem}
+details{border-radius:18px;background:var(--white);padding:0 15px}
+summary{cursor:pointer;min-height:48px;padding-block:12px;font-weight:700}
+details p{color:var(--muted);font-size:.85rem;margin-bottom:8px}
+#schedule input{min-width:106px}
+.bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--green)}
+.summary-link{display:none}
+@keyframes arrive{from{opacity:0;transform:translateY(7px) scale(.99)}to{opacity:1;transform:none}}
+@media(min-width:761px){output{position:sticky;top:16px}}
+@media(max-width:760px){section:not([hidden]){grid-template-columns:minmax(0,1fr)}.summary-link{display:inline-flex;align-items:center;min-height:44px;color:var(--ink);font-size:.87rem;font-weight:650;letter-spacing:normal;text-underline-offset:4px}.form-actions{display:grid;gap:4px}}
+@media(prefers-reduced-motion:reduce){section:not([hidden]),.payment-face{animation:none}button{transition:none}button:active{transform:none}}
+@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){nav{background:var(--white);backdrop-filter:none}}
 </style>
 <main>
 <header><span>Calculadoras financieras</span><span>USD</span></header>
