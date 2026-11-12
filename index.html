@@ -12,6 +12,15 @@ output{display:block;background:var(--navy);color:white}output h3{margin:18px 0 
 .scroll{max-width:100%;overflow:auto}table{border-collapse:collapse;width:100%;white-space:nowrap;font-variant-numeric:tabular-nums}th,td{text-align:right;padding:8px;border-bottom:1px solid var(--line)}th{font-size:.78rem;color:var(--muted)}th:first-child,td:first-child{text-align:left}#debtForm th,#debtForm td{padding:5px}#schedule input{min-width:108px}summary{cursor:pointer;font-weight:700;min-height:44px;padding-block:9px}details p{margin:8px 0 12px;color:var(--muted)}small{color:var(--muted)}.bar{height:8px;background:#a9cfef;border-radius:5px;overflow:hidden}.bar span{display:block;height:100%;background:var(--blue)}tr:focus-within{background:#edf5ff}.field-caption{display:none}
 @media(max-width:850px){section:not([hidden]){grid-template-columns:minmax(0,1fr)}}
 @media(max-width:640px){#debtForm table,#debtForm tbody{display:block}#debtForm thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}#debtForm tr{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px;background:var(--paper);border-radius:12px;margin-bottom:10px}#debtForm td{padding:0;text-align:left;border:0;min-width:0}#debtForm td:first-child{grid-column:1/-1}.field-caption{display:block;font-weight:620;font-size:.8rem;margin-bottom:4px}#debtForm td:last-child{align-self:end}nav button{font-size:.87rem;padding-inline:9px}}
+
+body{background:radial-gradient(ellipse at 83% 0%,#e2ecff 0%,transparent 48%),#f3f5fa}
+header{margin-bottom:28px}header p{max-width:52ch}nav{position:sticky;top:10px;z-index:3;background:#e9eef8eb;box-shadow:0 4px 20px #142a5517;border:1px solid #ffffffbd;backdrop-filter:blur(16px)}
+nav button,button.primary{transition:transform 140ms ease,background-color 140ms ease}nav button:active,button.primary:active{transform:scale(.97)}
+form{box-shadow:0 8px 28px #162b5110}output{background:linear-gradient(142deg,#183359,#10213d 70%);box-shadow:0 12px 32px #10213d29;scroll-margin-top:84px}
+@media(min-width:851px){output{position:sticky;top:78px}}
+.stats div:first-child{background:#ffffff20}.stats div:first-child strong{color:#dbeaff}.stats div{border:1px solid #ffffff15}.summary-link{display:none}
+@media(max-width:850px){.summary-link{display:inline-flex;min-height:44px;align-items:center;width:fit-content;color:var(--blue);font-weight:650;text-underline-offset:4px}.form-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px}.summary-link[hidden]{display:none}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important}nav button:active,button.primary:active{transform:none}}
 </style>
 <main>
 <header><h1>Calculadoras de deuda e hipoteca</h1>
@@ -24,19 +33,19 @@ output{display:block;background:var(--navy);color:white}output h3{margin:18px 0 
 <p><button id="add" type="button">Agregar deuda</button></p>
 <div class="grid"><label>Estrategia<select id="strategy"><option value="rate">Avalancha · mayor tasa primero</option><option value="balance">Bola de nieve · menor saldo primero</option></select></label>
 <label>Pago extra mensual (USD)<input id="extra" type="number" min="0" step="0.01" value="0"></label></div>
-<p><button class="primary">Calcular plan</button></p>
+<p class="form-actions"><button class="primary">Calcular plan</button><a class="summary-link" href="#debtResult">Ver resultados ↓</a></p>
 </form>
-<output id="debtResult" aria-live="polite"></output>
+<output id="debtResult" tabindex="-1" aria-label="Resultados de endeudamiento" aria-live="polite"></output>
 <small>El mínimo se mantiene fijo por deuda. La simulación aplica interés mensual y reasigna los pagos liberados. Excluye comisiones y cambios de tasa.</small>
 </section>
 <section id="home" hidden>
-<h2>Crédito hipotecario</h2>
+<h2>Crédito hipotecario <a class="summary-link" href="#homeResult">Ver resultados ↓</a></h2>
 <form id="mortgage">
 <h3>Datos del crédito</h3><div class="grid" id="loanFields"></div>
 <h3>Aportaciones a capital</h3><div class="grid" id="extraFields"></div>
 <h3>Seguros</h3><div class="grid" id="insuranceFields"></div>
 </form>
-<output id="homeResult"></output>
+<output id="homeResult" tabindex="-1" aria-label="Resultados de hipoteca"></output>
 <details><summary>Intereses y capital por año</summary><div class="scroll" id="years" tabindex="0" role="region" aria-label="Intereses y capital por año"></div></details>
 <details><summary>Tabla completa de pagos</summary><p>Edita el aporte de un mes para reemplazar el importe programado. Borra el valor para volver a la regla mensual y anual.</p><div class="scroll" id="schedule" tabindex="0" role="region" aria-label="Tabla completa de pagos"></div></details>
 <small>Interés sobre saldo con base de 360 días. El primer período usa días reales y los siguientes usan 30.4 días. Consulta las condiciones de tu banco para conocer el cálculo contractual.</small>
@@ -137,6 +146,7 @@ get('debtForm').onsubmit = event => {
   const heading = document.createElement('h3');
   heading.textContent = 'Orden de liquidación';
   out.append(info,heading,list);
+  if (event.submitter && matchMedia("(max-width: 850px)").matches) out.focus();
 };
 const numericField = (id,label,value,min,max,step='0.01') => '<label>'+label+'<input required type="number" id="'+id+'" value="'+value+'" min="'+min+'" max="'+max+'" step="'+step+'"></label>';
 get('loanFields').innerHTML = numericField('principal','Monto del crédito (USD)',1976000,1,1e12)
