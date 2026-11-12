@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Calculadoras de deuda e hipoteca</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f7f3;color:#18332b;font:16px system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:32px 16px 64px}h1{font-size:clamp(2rem,5vw,3.5rem);line-height:1;margin:.5em 0}section{background:white;border:1px solid #dae4dc;border-radius:18px;padding:clamp(12px,3vw,30px);margin:18px 0}nav,.grid,.actions{display:flex;flex-wrap:wrap;gap:12px}.grid>*{flex:1 1 190px}button,select,input{font:inherit;border:1px solid #7b9487;border-radius:8px;padding:8px;color:inherit;background:white}input,select{width:100%;min-width:0}button{cursor:pointer}button[aria-pressed=true],button.primary{background:#175641;color:white}label{display:block}label input,label select{margin-top:5px}.scroll{overflow:auto}table{border-collapse:collapse;width:100%;white-space:nowrap}th,td{text-align:right;padding:8px;border-bottom:1px solid #dae4dc}th:first-child,td:first-child{text-align:left}td input{min-width:90px}td:first-child input{min-width:155px}.stats{display:flex;gap:12px;flex-wrap:wrap;margin:18px 0}.stats div{flex:1 1 150px;background:#eef5ed;border-radius:10px;padding:12px}.stats strong{display:block;font-size:1.35rem}summary{cursor:pointer;font-weight:700}details{margin:18px 0}small{color:#426255}output{display:block}.bar{display:flex;height:8px;background:#8dc9a4;border-radius:4px;overflow:hidden}.bar span{background:#805e30}tr:focus-within{background:#eff8f0}
+</style>
+<main>
+<h1>Calculadoras de deuda e hipoteca</h1>
+<p>Simula pagos y aportaciones en dólares estadounidenses (USD). Los datos se procesan en esta página.</p>
+<nav aria-label="Calculadora"><button id="showDebt" aria-pressed="true">Endeudamiento</button><button id="showHome" aria-pressed="false">Crédito hipotecario</button></nav>
+<section id="debt">
+<h2>Plan de pago de deudas</h2>
+<form id="debtForm">
+<div class="scroll"><table><thead><tr><th>Deuda</th><th>Saldo (USD)</th><th>Tasa anual (%)</th><th>Mínimo (USD)</th><th>Quitar</th></tr></thead><tbody id="debts"></tbody></table></div>
+<p><button id="add" type="button">Agregar deuda</button></p>
+<div class="grid"><label>Estrategia<select id="strategy"><option value="rate">Avalancha · mayor tasa primero</option><option value="balance">Bola de nieve · menor saldo primero</option></select></label>
+<label>Pago extra mensual (USD)<input id="extra" type="number" min="0" step="0.01" value="0"></label></div>
+<p><button class="primary">Calcular plan</button></p>
+</form>
+<output id="debtResult" aria-live="polite"></output>
+<small>El mínimo se mantiene fijo por deuda. La simulación aplica interés mensual y reasigna los pagos liberados. Excluye comisiones y cambios de tasa.</small>
+</section>
+<section id="home" hidden>
+<h2>Crédito hipotecario</h2>
+<form id="mortgage">
+<h3>Datos del crédito</h3><div class="grid" id="loanFields"></div>
+<h3>Aportaciones a capital</h3><div class="grid" id="extraFields"></div>
+<h3>Seguros</h3><div class="grid" id="insuranceFields"></div>
+</form>
+<output id="homeResult"></output>
+<details><summary>Intereses y capital por año</summary><div class="scroll" id="years"></div></details>
+<details><summary>Tabla completa de pagos</summary><p>Edita el aporte de un mes para reemplazar el importe programado. Borra el valor para volver a la regla mensual y anual.</p><div class="scroll" id="schedule"></div></details>
+<small>Interés sobre saldo con base de 360 días. El primer período usa días reales y los siguientes usan 30.4 días. Consulta las condiciones de tu banco para conocer el cálculo contractual.</small>
+</section>
+</main>
+<script>
+const get = id => document.getElementById(id);
+const num = id => Number(get(id).value);
+const money = (value, decimals = 0) => new Intl.NumberFormat('es-MX', {style:'currency', currency:'USD', currencyDisplay:'code', minimumFractionDigits:decimals, maximumFractionDigits:decimals}).format(value);
+const months = Array.from({length:12}, (_,i) => new Intl.DateTimeFormat('es-MX',{month:'long',timeZone:'UTC'}).format(new Date(Date.UTC(2020,i,1))));
+const duration = n => n < 12 ? n + (n === 1 ? ' mes' : ' meses') : Math.floor(n/12) + (n < 24 ? ' año' : ' años') + (n%12 ? ' y ' + duration(n%12) : '');
+const stats = pairs => '<div class="stats">' + pairs.map(([label,value]) => '<div>'+label+'<strong>'+value+'</strong></div>').join('') + '</div>';
+const table = (heads, rows) => '<table><thead><tr>'+heads.map(x=>'<th scope="col">'+x+'</th>').join('')+'</tr></thead><tbody>'+rows.map(row=>'<tr>'+row.map(x=>'<td>'+x+'</td>').join('')+'</tr>').join('')+'</tbody></table>';
+for (const [button,show] of [['showDebt',true],['showHome',false]]) get(button).onclick = () => {
+  get('debt').hidden = !show;
+  get('home').hidden = show;
+  get('showDebt').setAttribute('aria-pressed',show);
+  get('showHome').setAttribute('aria-pressed',!show);
+};
+function addDebt(values = ['', '', '', '']) {
+  const row = get('debts').insertRow();
+  ['Nombre de la deuda','Saldo','Tasa anual','Pago mínimo'].forEach((label,i) => {
+    const input = document.createElement('input');
+    input.setAttribute('aria-label',label);
+    if(i) Object.assign(input,{type:'number',min:'0',step:'0.01',required:true});
+    input.value = values[i];
+    row.insertCell().append(input);
+  });
+  const remove = document.createElement('button');
+  Object.assign(remove,{textContent:'Quitar',type:'button',onclick:()=>row.remove()});
+  row.insertCell().append(remove);
+}
+addDebt(['Tarjeta de crédito',25000,45,1200]);
+addDebt(['Préstamo personal',40000,28,1800]);
+get('add').onclick = () => addDebt();
+function payoff(debts, extra, strategy) {
+  const active = debts.map(debt=>({...debt}));
+  const budget = extra + debts.reduce((sum,debt)=>sum+debt.minimum,0);
+  const closed = [];
+  let interest = 0;
+  for(let month=1; month<=1200; month++){
+    const priority = active.filter(debt=>debt.balance>0);
+    let available = budget - priority.reduce((sum,debt)=>sum+debt.minimum,0);
+    priority.sort(strategy==='rate' ? (a,b)=>b.rate-a.rate : (a,b)=>a.balance-b.balance);
+    for(const debt of priority){
+      const charge = debt.balance*debt.rate/1200;
+      interest += charge;
+      debt.balance += charge;
+      const payment = Math.min(debt.balance,debt.minimum);
+      debt.balance -= payment;
+    }
+    for(const debt of priority){
+      if(strategy){
+        const payment = Math.min(debt.balance,Math.max(0,available));
+        debt.balance -= payment;
+        available -= payment;
+      }
+      if(debt.balance<1e-7){
+        debt.balance=0;
+        closed.push({name:debt.name,month});
+      }
+    }
+    if(closed.length===debts.length) return {month,interest,closed};
+    if(!strategy && priority.some(debt=>debt.balance>0 && debt.balance*debt.rate/1200>=debt.minimum)) return null;
+  }
+  return null;
+}
+get('debtForm').onsubmit = event => {
+  event.preventDefault();
+  const debts = Array.from(get('debts').rows,(row,i)=>{
+    const [name,balance,rate,minimum] = Array.from(row.querySelectorAll('input'),input=>input.value);
+    return {name:name.trim()||'Deuda '+(i+1),balance:Number(balance),rate:Number(rate),minimum:Number(minimum)};
+  }).filter(debt=>debt.balance>0);
+  const out = get('debtResult');
+  if(!debts.length){out.textContent='Agrega una deuda con saldo mayor a cero.';return;}
+  const plan = payoff(debts,num('extra'),get('strategy').value);
+  const baseline = payoff(debts,0,null);
+  if(!plan){out.textContent='Con estos pagos no se liquida la deuda en 100 años. Revisa los mínimos y el aporte extra.';return;}
+  const date = new Date();
+  date.setDate(1);
+  date.setMonth(date.getMonth()+plan.month);
+  out.innerHTML = stats([['Tiempo para liquidar',duration(plan.month)],['Intereses',money(plan.interest)],['Total pagado',money(plan.interest+debts.reduce((sum,d)=>sum+d.balance,0))]]);
+  const info = document.createElement('p');
+  info.textContent = 'Liquidación estimada: '+date.toLocaleDateString('es-MX',{month:'long',year:'numeric'})+'. '+(baseline
+    ? 'Solo con mínimos: '+duration(baseline.month)+' e intereses de '+money(baseline.interest)+'. Diferencia (mínimos menos plan): '+(baseline.month-plan.month)+' meses y '+money(baseline.interest-plan.interest)+'.'
+    : 'El escenario con solo mínimos no se liquida dentro del horizonte de simulación.');
+  const list = document.createElement('ol');
+  for(const debt of plan.closed){
+    const item = document.createElement('li');
+    item.textContent = debt.name+' · liquidada en el mes '+debt.month;
+    list.append(item);
+  }
+  const heading = document.createElement('h3');
+  heading.textContent = 'Orden de liquidación';
+  out.append(info,heading,list);
+};
+const numericField = (id,label,value,min,max,step='0.01') => '<label>'+label+'<input required type="number" id="'+id+'" value="'+value+'" min="'+min+'" max="'+max+'" step="'+step+'"></label>';
+get('loanFields').innerHTML = numericField('principal','Monto del crédito (USD)',1976000,1,1e12)
+  + numericField('rate','Tasa anual (%)',10,0,100)
+  + numericField('term','Plazo en años',20,1,50,1)
+  + '<label>Fecha de desembolso<input required type="date" id="start" min="1900-01-01" max="2200-12-31"></label>'
+  + numericField('day','Día de pago',3,1,31,1);
+const today = new Date();
+get('start').value = [today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
+get('extraFields').innerHTML = '<label>Objetivo<select id="mode"><option value="short">Terminar antes</option><option value="recast">Reducir la mensualidad</option></select></label>'
+  + numericField('monthly','Aporte mensual (USD)',1000,0,1e12)
+  + numericField('annual','Aporte anual (USD)',20000,0,1e12)
+  + '<label>Mes del aporte anual<select id="annualMonth">'+months.map((m,i)=>'<option value="'+i+'"'+(i===11?' selected':'')+'>'+m+'</option>').join('')+'</select></label>';
+get('insuranceFields').innerHTML = numericField('life','Seguro de vida anual (%)',0,0,100)
+  + numericField('damage','Seguro de daños mensual (USD)',0,0,1e12);
+const overrides = new Map();
+const dateFormat = new Intl.DateTimeFormat('es-MX',{day:'2-digit',month:'short',year:'numeric',timeZone:'UTC'});
+function mortgagePlan(config, useExtras) {
+  const {principal,annualRate,term,start,day,monthly,annual,annualMonth,life,damage,recast} = config;
+  const rate = annualRate*30.4/360;
+  const payment = (balance,n) => rate ? balance*rate/-Math.expm1(-n*Math.log1p(rate)) : balance/n;
+  let regular = payment(principal,term);
+  let balance = principal;
+  let totalInterest = 0;
+  let totalPaid = 0;
+  const rows = [];
+  for(let index=0;index<term && balance>1e-7;index++){
+    const month = start.getUTCMonth()+index+1;
+    const year = start.getUTCFullYear();
+    const date = new Date(Date.UTC(year,month,Math.min(day,new Date(Date.UTC(year,month+1,0)).getUTCDate())));
+    const days = index ? 30.4 : (date-start)/86400000;
+    const interest = balance*annualRate*days/360;
+    const scheduled = index===term-1 ? balance : Math.min(balance,Math.max(0,regular-balance*rate));
+    const planned = useExtras ? monthly+(date.getUTCMonth()===annualMonth ? annual : 0) : 0;
+    const requested = useExtras ? overrides.get(index+1) ?? planned : 0;
+    const extra = Math.min(balance-scheduled,requested);
+    const lifeFee = balance*life*days/360;
+    const paid = scheduled+extra+interest+lifeFee+damage;
+    const opening = balance;
+    balance = Math.max(0,balance-scheduled-extra);
+    totalInterest += interest;
+    totalPaid += paid;
+    rows.push({date,days,opening,capital:scheduled+extra,interest,lifeFee,damage,planned,requested,paid,balance});
+    if(recast && extra>0 && index+1<term) regular=payment(balance,term-index-1);
+  }
+  return {rows,totalInterest,totalPaid};
+}
+function updateMortgage(){
+  if(!get('mortgage').checkValidity()){
+    get('homeResult').textContent='Completa los campos con valores válidos.';
+    get('years').replaceChildren();
+    get('schedule').replaceChildren();
+    return;
+  }
+  const config = {principal:num('principal'),annualRate:num('rate')/100,term:num('term')*12,start:new Date(get('start').value+'T00:00:00Z'),day:num('day'),monthly:num('monthly'),annual:num('annual'),annualMonth:num('annualMonth'),life:num('life')/100,damage:num('damage'),recast:get('mode').value==='recast'};
+  const plan = mortgagePlan(config,true);
+  const baseline = mortgagePlan(config,false);
+  const rows = plan.rows;
+  const normal = rows[1] || rows[0];
+  const savedMonths = baseline.rows.length-rows.length;
+  get('homeResult').innerHTML = stats([['Primer pago',money(rows[0].paid)],['Pago del mes '+(rows.length>1?2:1),money(normal.paid)],['Plazo estimado',duration(rows.length)],['Intereses',money(plan.totalInterest)],['Total con seguros',money(plan.totalPaid)]])
+    + '<p>Ahorro frente al plan sin aportaciones: <strong>'+money(baseline.totalInterest-plan.totalInterest)+'</strong> en intereses y <strong>'+savedMonths+'</strong> meses. Fecha estimada de liquidación: '+dateFormat.format(rows.at(-1).date)+'.</p>';
+  const annualRows = [];
+  let cumulative = 0;
+  for(let i=0;i<rows.length;i+=12){
+    const slice = rows.slice(i,i+12);
+    const interest = slice.reduce((sum,row)=>sum+row.interest,0);
+    const capital = slice.reduce((sum,row)=>sum+row.capital,0);
+    cumulative += interest;
+    const percent = Math.round(interest/(interest+capital)*100);
+    annualRows.push([i/12+1,money(capital),money(interest),money(cumulative),percent+'%<div class="bar" aria-hidden="true"><span style="width:'+percent+'%"></span></div>']);
+  }
+  get('years').innerHTML = table(['Año','Capital','Interés','Interés acumulado','% a intereses'],annualRows);
+  get('schedule').innerHTML = table(['Mes','Fecha','Días','Saldo inicial','Capital total','Interés','Seguro de vida','Seguro de daños','Aporte solicitado','Pago total','Saldo final'],rows.map((row,i)=>[
+    i+1,dateFormat.format(row.date),row.days,money(row.opening,2),money(row.capital,2),money(row.interest,2),money(row.lifeFee,2),money(row.damage,2),
+    '<input aria-label="Aporte del mes '+(i+1)+'" data-month="'+(i+1)+'" type="number" min="0" max="1000000000000" step="0.01" placeholder="'+row.planned+'" value="'+(overrides.get(i+1)??'')+'">',
+    money(row.paid,2),money(row.balance,2)
+  ]));
+}
+get('mortgage').addEventListener('input',updateMortgage);
+get('mortgage').onsubmit = event => event.preventDefault();
+get('schedule').addEventListener('change',event=>{
+  const input = event.target;
+  if(!input.dataset.month || !input.reportValidity()) return;
+  const month = Number(input.dataset.month);
+  if(input.value==='') overrides.delete(month);
+  else overrides.set(month,Number(input.value));
+  updateMortgage();
+  get('schedule').querySelector('[data-month="'+month+'"]')?.focus({preventScroll:true});
+});
+updateMortgage();
+get('debtForm').requestSubmit();
+</script>
+</html>
