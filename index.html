@@ -77,6 +77,13 @@ details p{color:var(--muted);font-size:.85rem;margin-bottom:8px}
 @media(max-width:760px){section:not([hidden]){grid-template-columns:minmax(0,1fr)}.summary-link{display:inline-flex;align-items:center;min-height:44px;color:var(--ink);font-size:.87rem;font-weight:650;letter-spacing:normal;text-underline-offset:4px}.form-actions{display:grid;gap:4px}}
 @media(prefers-reduced-motion:reduce){section:not([hidden]),.payment-face{animation:none}button{transition:none}button:active{transform:none}}
 @media(prefers-reduced-transparency:reduce),(prefers-contrast:more){nav{background:var(--white);backdrop-filter:none}}
+
+nav{isolation:isolate}nav::before{content:"";position:absolute;z-index:-1;left:5px;top:5px;bottom:5px;width:calc((100% - 14px)/2);border-radius:999px;background:var(--green);transform:translateX(0);transition:transform 360ms cubic-bezier(.2,.85,.3,1.08)}nav:has(#showHome[aria-pressed=true])::before{transform:translateX(calc(100% + 4px))}nav button[aria-pressed=true]{background:transparent}
+.payment-ring{display:grid;place-items:center;width:156px;height:156px;margin:14px auto;border-radius:50%;background:conic-gradient(var(--green) calc(var(--progress)*1%),var(--line) 0);position:relative}
+.payment-ring::before{content:"";position:absolute;inset:7px;border-radius:50%;background:white}
+.payment-ring span{position:relative;font-size:2rem;letter-spacing:-.04em;font-weight:750}
+.ring-label{text-align:center;margin-bottom:12px!important}
+@media(prefers-reduced-motion:reduce){nav::before{transition:none}}
 </style>
 <main>
 <header><span>Calculadoras financieras</span><span>USD</span></header>
@@ -107,6 +114,41 @@ details p{color:var(--muted);font-size:.85rem;margin-bottom:8px}
 </section>
 </main>
 <script>
+
+const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
+const resultMotion = new WeakMap();
+function animateResults(output, fraction, label) {
+  const previous = resultMotion.get(output);
+  if(previous) cancelAnimationFrame(previous);
+  const ring = document.createElement('div');
+  ring.className = 'payment-ring';
+  ring.setAttribute('aria-hidden','true');
+  const value = document.createElement('span');
+  ring.append(value);
+  const caption = document.createElement('p');
+  caption.className = 'ring-label';
+  caption.textContent = Math.round(fraction * 100) + '% · ' + label;
+  const breakdown = output.querySelector('.payment-breakdown');
+  breakdown.after(ring,caption);
+  const percent = Math.max(0,Math.min(100,fraction*100));
+  const render = progress => {
+    ring.style.setProperty('--progress', percent * progress);
+    value.textContent = Math.round(percent * progress) + '%';
+  };
+  if(motionPreference.matches) { render(1); return; }
+  const start = performance.now();
+  const tick = now => {
+    const t = Math.min(1,(now-start)/550);
+    render(1-Math.pow(1-t,3));
+    if(t<1 && ring.isConnected) resultMotion.set(output,requestAnimationFrame(tick));
+  };
+  resultMotion.set(output,requestAnimationFrame(tick));
+  for(const [index,row] of [...breakdown.children].entries()){
+    row.animate([{opacity:0,transform:'translateY(12px) scale(.98)'},{opacity:1,transform:'none'}],
+      {duration:340,delay:Math.min(index,5)*35,easing:'cubic-bezier(.2,.8,.3,1)',fill:'backwards'});
+  }
+}
+
 const get = id => document.getElementById(id);
 const num = id => Number(get(id).value);
 const money = (value, decimals = 0) => new Intl.NumberFormat('es-MX', {style:'currency', currency:'USD', currencyDisplay:'code', minimumFractionDigits:decimals, maximumFractionDigits:decimals}).format(value);
@@ -212,6 +254,7 @@ get('debtForm').onsubmit = event => {
     breakdown.append(row);
   }
   out.prepend(paymentFace,breakdown);
+  animateResults(out, firstTotal ? plan.firstPayments.reduce((sum,debt)=>sum+debt.extra,0)/firstTotal : 0, "del pago destinado a aportes extra");
   const info = document.createElement('p');
   info.textContent = 'Liquidación estimada: '+date.toLocaleDateString('es-MX',{month:'long',year:'numeric'})+'. '+(baseline
     ? 'Solo con mínimos: '+duration(baseline.month)+' e intereses de '+money(baseline.interest)+'. Diferencia (mínimos menos plan): '+(baseline.month-plan.month)+' meses y '+money(baseline.interest-plan.interest)+'.'
@@ -294,6 +337,7 @@ function updateMortgage(){
     '<div><dt>'+label+'</dt><dd>'+money(amount,2)+'</dd></div>').join('')+'</dl>'
     + stats([['Primer pago',money(rows[0].paid,2)],['Plazo estimado',duration(rows.length)],['Intereses',money(plan.totalInterest)],['Total con seguros',money(plan.totalPaid)]])
     + '<p>Ahorro frente al plan sin aportaciones: <strong>'+money(baseline.totalInterest-plan.totalInterest)+'</strong> en intereses y <strong>'+savedMonths+'</strong> meses. Fecha estimada de liquidación: '+dateFormat.format(rows.at(-1).date)+'.</p>';
+  animateResults(get('homeResult'), normal.capital / normal.paid, 'del pago reduce el capital');
   const annualRows = [];
   let cumulative = 0;
   for(let i=0;i<rows.length;i+=12){
