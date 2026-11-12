@@ -22,8 +22,9 @@ details{border-radius:17px;background:var(--surface);padding:0 15px}summary{curs
 .payment-face p{margin-top:6px}.payment-breakdown{margin:10px 0 16px;font-variant-numeric:tabular-nums}
 .payment-breakdown div{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #ffffff26;font-size:.82rem}
 .payment-breakdown dd{margin:0;text-align:right}.payment-breakdown dt{color:#e0e0e9}
-#homeResult .stats div:first-child{grid-column:auto;padding:0;border:0}
-#homeResult .stats div:first-child strong{font-size:1.14rem;letter-spacing:normal}
+output .stats div:first-child{grid-column:auto;padding:0;border:0}
+output .stats div:first-child strong{font-size:1.14rem;letter-spacing:normal}
+.payment-breakdown dt{min-width:0;overflow-wrap:anywhere}.payment-breakdown dd{flex-shrink:0}.payment-breakdown small{display:block;color:#e0e0e9}
 </style>
 <main>
 <header><span>Calculadoras financieras</span><span>USD</span></header>
@@ -92,6 +93,7 @@ function payoff(debts, extra, strategy) {
   const active = debts.map(debt=>({...debt}));
   const budget = extra + debts.reduce((sum,debt)=>sum+debt.minimum,0);
   const closed = [];
+  const firstPayments = new Map();
   let interest = 0;
   for(let month=1; month<=1200; month++){
     const priority = active.filter(debt=>debt.balance>0);
@@ -103,19 +105,21 @@ function payoff(debts, extra, strategy) {
       debt.balance += charge;
       const payment = Math.min(debt.balance,debt.minimum);
       debt.balance -= payment;
+      if(month===1) firstPayments.set(debt,{name:debt.name,minimum:payment,extra:0});
     }
     for(const debt of priority){
       if(strategy){
         const payment = Math.min(debt.balance,Math.max(0,available));
         debt.balance -= payment;
         available -= payment;
+        if(month===1) firstPayments.get(debt).extra = payment;
       }
       if(debt.balance<1e-7){
         debt.balance=0;
         closed.push({name:debt.name,month});
       }
     }
-    if(closed.length===debts.length) return {month,interest,closed};
+    if(closed.length===debts.length) return {month,interest,closed,firstPayments:[...firstPayments.values()]};
     if(!strategy && priority.some(debt=>debt.balance>0 && debt.balance*debt.rate/1200>=debt.minimum)) return null;
   }
   return null;
@@ -135,6 +139,27 @@ get('debtForm').onsubmit = event => {
   date.setDate(1);
   date.setMonth(date.getMonth()+plan.month);
   out.innerHTML = stats([['Tiempo para liquidar',duration(plan.month)],['Intereses',money(plan.interest)],['Total pagado',money(plan.interest+debts.reduce((sum,d)=>sum+d.balance,0))]]);
+  const paymentFace = document.createElement('div');
+  paymentFace.className = 'payment-face';
+  const firstTotal = plan.firstPayments.reduce((sum,debt)=>sum+debt.minimum+debt.extra,0);
+  paymentFace.innerHTML = '<span>Pago estimado · mes 1</span><strong>'+money(firstTotal,2)+'</strong><p>El importe puede cambiar al liquidar una deuda.</p>';
+  const breakdown = document.createElement('dl');
+  breakdown.className = 'payment-breakdown';
+  for(const debt of plan.firstPayments){
+    const row = document.createElement('div');
+    const label = document.createElement('dt');
+    const amount = document.createElement('dd');
+    label.textContent = debt.name;
+    amount.textContent = money(debt.minimum+debt.extra,2);
+    if(debt.extra>0){
+      const detail = document.createElement('small');
+      detail.textContent = money(debt.minimum,2)+' mínimo + '+money(debt.extra,2)+' extra';
+      label.append(detail);
+    }
+    row.append(label,amount);
+    breakdown.append(row);
+  }
+  out.prepend(paymentFace,breakdown);
   const info = document.createElement('p');
   info.textContent = 'Liquidación estimada: '+date.toLocaleDateString('es-MX',{month:'long',year:'numeric'})+'. '+(baseline
     ? 'Solo con mínimos: '+duration(baseline.month)+' e intereses de '+money(baseline.interest)+'. Diferencia (mínimos menos plan): '+(baseline.month-plan.month)+' meses y '+money(baseline.interest-plan.interest)+'.'
