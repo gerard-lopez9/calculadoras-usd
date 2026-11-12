@@ -15,6 +15,15 @@ details{border-radius:17px;background:var(--surface);padding:0 15px}summary{curs
 @media(min-width:761px){output{position:sticky;top:18px}}
 @media(max-width:760px){section:not([hidden]){grid-template-columns:minmax(0,1fr);gap:14px}.summary-link{display:inline-flex;align-items:center;min-height:44px;color:var(--accent);font-size:.87rem;font-weight:650;text-underline-offset:4px}.form-actions{display:grid;gap:4px}}
 @media(prefers-reduced-motion:reduce){button{transition:none}button:active{transform:none}}
+
+.payment-face{padding:8px 0 16px;border-bottom:1px solid #ffffff40;margin-bottom:16px}
+.payment-face span{display:block;color:#e0e0e9;font-size:.83rem;font-weight:650}
+.payment-face strong{display:block;color:white;font-size:clamp(2rem,5vw,3.3rem);font-variant-numeric:tabular-nums;letter-spacing:-.06em;line-height:1.15;overflow-wrap:anywhere}
+.payment-face p{margin-top:6px}.payment-breakdown{margin:10px 0 16px;font-variant-numeric:tabular-nums}
+.payment-breakdown div{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #ffffff26;font-size:.82rem}
+.payment-breakdown dd{margin:0;text-align:right}.payment-breakdown dt{color:#e0e0e9}
+#homeResult .stats div:first-child{grid-column:auto;padding:0;border:0}
+#homeResult .stats div:first-child strong{font-size:1.14rem;letter-spacing:normal}
 </style>
 <main>
 <header><span>Calculadoras financieras</span><span>USD</span></header>
@@ -182,7 +191,7 @@ function mortgagePlan(config, useExtras) {
     balance = Math.max(0,balance-scheduled-extra);
     totalInterest += interest;
     totalPaid += paid;
-    rows.push({date,days,opening,capital:scheduled+extra,interest,lifeFee,damage,planned,requested,paid,balance});
+    rows.push({date,days,opening,capital:scheduled+extra,extra,interest,lifeFee,damage,planned,requested,paid,balance});
     if(recast && extra>0 && index+1<term) regular=payment(balance,term-index-1);
   }
   return {rows,totalInterest,totalPaid};
@@ -200,7 +209,13 @@ function updateMortgage(){
   const rows = plan.rows;
   const normal = rows[1] || rows[0];
   const savedMonths = baseline.rows.length-rows.length;
-  get('homeResult').innerHTML = stats([['Primer pago',money(rows[0].paid)],['Pago del mes '+(rows.length>1?2:1),money(normal.paid)],['Plazo estimado',duration(rows.length)],['Intereses',money(plan.totalInterest)],['Total con seguros',money(plan.totalPaid)]])
+  const paymentLabel = rows.length > 1 ? 'Pago estimado · mes 2' : 'Pago único estimado';
+  const breakdown = [['Capital programado', normal.capital - normal.extra], ['Intereses del mes', normal.interest],
+    ['Seguros', normal.lifeFee + normal.damage], ['Aporte a capital', normal.extra]];
+  const paymentFace = '<div class="payment-face"><span>'+paymentLabel+'</span><strong>'+money(normal.paid,2)+'</strong><p>'+dateFormat.format(normal.date)+'</p></div>';
+  get('homeResult').innerHTML = paymentFace + '<dl class="payment-breakdown">'+breakdown.map(([label,amount])=>
+    '<div><dt>'+label+'</dt><dd>'+money(amount,2)+'</dd></div>').join('')+'</dl>'
+    + stats([['Primer pago',money(rows[0].paid,2)],['Plazo estimado',duration(rows.length)],['Intereses',money(plan.totalInterest)],['Total con seguros',money(plan.totalPaid)]])
     + '<p>Ahorro frente al plan sin aportaciones: <strong>'+money(baseline.totalInterest-plan.totalInterest)+'</strong> en intereses y <strong>'+savedMonths+'</strong> meses. Fecha estimada de liquidación: '+dateFormat.format(rows.at(-1).date)+'.</p>';
   const annualRows = [];
   let cumulative = 0;
