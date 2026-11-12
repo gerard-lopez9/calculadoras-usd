@@ -2,7 +2,7 @@
 <html lang="es">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Calculadoras de deuda e hipoteca</title>
+<link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#00d632"><link rel="apple-touch-icon" href="icon.png"><title>Calculadoras de deuda e hipoteca</title>
 <style>
 :root{color-scheme:light;--green:#00d632;--paper:#f2f2ef;--white:#fff;--ink:#141414;--muted:#53534f;--line:#dfdfda;--field:#f7f7f5;--focus:#12612b}
 *{box-sizing:border-box}
@@ -117,7 +117,7 @@ nav{isolation:isolate}nav::before{content:"";position:absolute;z-index:-1;left:5
 <details><summary>Tabla completa de pagos</summary><p>Edita el aporte de un mes para reemplazar el importe programado. Borra el valor para volver a la regla mensual y anual.</p><div class="scroll" id="schedule" tabindex="0" role="region" aria-label="Tabla completa de pagos"></div></details>
 <small>Interés sobre saldo con base de 360 días. El primer período usa días reales y los siguientes usan 30.4 días. Consulta las condiciones de tu banco para conocer el cálculo contractual.</small>
 </section>
-</main>
+<details><summary>Mis escenarios</summary><p id="saveStatus" role="status">Guardado en este dispositivo.</p><label>Nombre<input id="planName" maxlength="80"></label><button id="savePlan">Guardar escenario</button> <button id="exportPlan">Descargar tabla CSV</button><div id="planList"></div><div class="scroll" id="comparison"></div></details><details><summary>Instalar en iPhone</summary><p>En Safari, abre Compartir → Agregar a pantalla de inicio. Abre la app con internet una vez para preparar el modo sin conexión.</p><p id="offlineStatus" role="status">Preparando acceso sin conexión…</p><p>Los datos se guardan en este navegador. Borrar los datos del sitio elimina tus escenarios. La app de inicio y Safari pueden usar almacenamiento separado.</p></details></main>
 <script>
 
 const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
@@ -192,10 +192,13 @@ function payoff(debts, extra, strategy) {
   const active = debts.map(debt=>({...debt}));
   const budget = extra + debts.reduce((sum,debt)=>sum+debt.minimum,0);
   const closed = [];
+  const schedule = [];
   const firstPayments = new Map();
   let interest = 0;
   for(let month=1; month<=1200; month++){
     const priority = active.filter(debt=>debt.balance>0);
+    const opening = active.reduce((s,d)=>s+d.balance,0);
+    const oldInterest = interest;
     let available = budget - priority.reduce((sum,debt)=>sum+debt.minimum,0);
     priority.sort(strategy==='rate' ? (a,b)=>b.rate-a.rate : (a,b)=>a.balance-b.balance);
     for(const debt of priority){
@@ -218,7 +221,9 @@ function payoff(debts, extra, strategy) {
         closed.push({name:debt.name,month});
       }
     }
-    if(closed.length===debts.length) return {month,interest,closed,firstPayments:[...firstPayments.values()]};
+    const remaining = active.reduce((s,d)=>s+d.balance,0);
+    schedule.push([month,opening,interest-oldInterest,opening+interest-oldInterest-remaining,remaining]);
+    if(closed.length===debts.length) return {month,interest,closed,firstPayments:[...firstPayments.values()],schedule};
     if(!strategy && priority.some(debt=>debt.balance>0 && debt.balance*debt.rate/1200>=debt.minimum)) return null;
   }
   return null;
@@ -373,5 +378,5 @@ get('schedule').addEventListener('change',event=>{
 });
 updateMortgage();
 get('debtForm').requestSubmit();
-</script>
+</script><script src="features.js"></script>
 </html>
