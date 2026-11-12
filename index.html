@@ -73,7 +73,7 @@ details p{color:var(--muted);font-size:.85rem;margin-bottom:8px}
 .bar span{display:block;height:100%;background:var(--green)}
 .summary-link{display:none}
 @keyframes arrive{from{opacity:0;transform:translateY(7px) scale(.99)}to{opacity:1;transform:none}}
-@media(min-width:761px){output{position:sticky;top:16px}}
+@media(min-width:761px){output{position:static}nav{position:sticky;top:10px;bottom:auto;left:auto;translate:none;margin:0 0 24px auto}}
 @media(max-width:760px){section:not([hidden]){grid-template-columns:minmax(0,1fr)}.summary-link{display:inline-flex;align-items:center;min-height:44px;color:var(--ink);font-size:.87rem;font-weight:650;letter-spacing:normal;text-underline-offset:4px}.form-actions{display:grid;gap:4px}}
 @media(prefers-reduced-motion:reduce){section:not([hidden]),.payment-face{animation:none}button{transition:none}button:active{transform:none}}
 @media(prefers-reduced-transparency:reduce),(prefers-contrast:more){nav{background:var(--white);backdrop-filter:none}}
@@ -84,6 +84,11 @@ nav{isolation:isolate}nav::before{content:"";position:absolute;z-index:-1;left:5
 .payment-ring span{position:relative;font-size:2rem;letter-spacing:-.04em;font-weight:750}
 .ring-label{text-align:center;margin-bottom:12px!important}
 @media(prefers-reduced-motion:reduce){nav::before{transition:none}}
+
+.payment-face{container-type:inline-size}
+.payment-face strong{font-size:clamp(1.35rem,9cqi,3rem);letter-spacing:-.035em;overflow-wrap:normal;white-space:nowrap}
+@media(max-width:760px){input,select,input[type=date]{font-size:16px}.grid label{grid-template-columns:minmax(0,1fr) minmax(0,48%)}body:has(input:focus,select:focus) nav{visibility:hidden}.payment-breakdown div{flex-wrap:wrap}main{padding-bottom:calc(130px + env(safe-area-inset-bottom))}}
+@media(max-width:360px){.grid label{grid-template-columns:1fr;gap:4px;padding:8px 0}}
 </style>
 <main>
 <header><span>Calculadoras financieras</span><span>USD</span></header>
@@ -94,7 +99,7 @@ nav{isolation:isolate}nav::before{content:"";position:absolute;z-index:-1;left:5
 <div class="scroll"><table><thead><tr><th>Deuda</th><th>Saldo (USD)</th><th>Tasa anual (%)</th><th>Mínimo (USD)</th><th>Quitar</th></tr></thead><tbody id="debts"></tbody></table></div>
 <p><button id="add" type="button">Agregar deuda</button></p>
 <div class="grid"><label>Estrategia<select id="strategy"><option value="rate">Avalancha · mayor tasa primero</option><option value="balance">Bola de nieve · menor saldo primero</option></select></label>
-<label>Pago extra mensual (USD)<input id="extra" type="number" min="0" step="0.01" value="0"></label></div>
+<label>Pago extra mensual (USD)<input id="extra" inputmode="decimal" type="number" min="0" step="0.01" value="0"></label></div>
 <p class="form-actions"><button class="primary">Calcular plan</button><a class="summary-link" href="#debtResult">Ver resultados ↓</a></p>
 </form>
 <output id="debtResult" tabindex="-1" aria-label="Resultados de endeudamiento" aria-live="polite"></output>
@@ -167,7 +172,7 @@ function addDebt(values = ['', '', '', '']) {
   ['Nombre de la deuda','Saldo','Tasa anual','Pago mínimo'].forEach((label,i) => {
     const input = document.createElement('input');
     input.setAttribute('aria-label',label);
-    if(i) Object.assign(input,{type:'number',min:'0',step:'0.01',required:true});
+    if(i) Object.assign(input,{type:'number',inputMode:'decimal',min:'0',step:'0.01',required:true});
     input.value = values[i];
     const cell = row.insertCell();
     const caption = document.createElement('span');
@@ -270,7 +275,7 @@ get('debtForm').onsubmit = event => {
   out.append(info,heading,list);
   if (event.submitter && matchMedia("(max-width: 760px)").matches) out.focus();
 };
-const numericField = (id,label,value,min,max,step='0.01') => '<label>'+label+'<input required type="number" id="'+id+'" value="'+value+'" min="'+min+'" max="'+max+'" step="'+step+'"></label>';
+const numericField = (id,label,value,min,max,step='0.01') => '<label>'+label+'<input required inputmode="decimal" type="number" id="'+id+'" value="'+value+'" min="'+min+'" max="'+max+'" step="'+step+'"></label>';
 get('loanFields').innerHTML = numericField('principal','Monto del crédito (USD)',1976000,1,1e12)
   + numericField('rate','Tasa anual (%)',10,0,100)
   + numericField('term','Plazo en años',20,1,50,1)
@@ -351,7 +356,7 @@ function updateMortgage(){
   get('years').innerHTML = table(['Año','Capital','Interés','Interés acumulado','% a intereses'],annualRows);
   get('schedule').innerHTML = table(['Mes','Fecha','Días','Saldo inicial','Capital total','Interés','Seguro de vida','Seguro de daños','Aporte solicitado','Pago total','Saldo final'],rows.map((row,i)=>[
     i+1,dateFormat.format(row.date),row.days,money(row.opening,2),money(row.capital,2),money(row.interest,2),money(row.lifeFee,2),money(row.damage,2),
-    '<input aria-label="Aporte del mes '+(i+1)+'" data-month="'+(i+1)+'" type="number" min="0" max="1000000000000" step="0.01" placeholder="'+row.planned+'" value="'+(overrides.get(i+1)??'')+'">',
+    '<input aria-label="Aporte del mes '+(i+1)+'" data-month="'+(i+1)+'" inputmode="decimal" type="number" min="0" max="1000000000000" step="0.01" placeholder="'+row.planned+'" value="'+(overrides.get(i+1)??'')+'">',
     money(row.paid,2),money(row.balance,2)
   ]));
 }
