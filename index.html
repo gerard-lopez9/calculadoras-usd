@@ -4,159 +4,118 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <link rel="manifest" href="manifest.webmanifest"><meta name="theme-color" content="#00d632"><link rel="apple-touch-icon" href="icon.png"><title>Calculadoras de deuda e hipoteca</title>
 <style>
-:root{color-scheme:light;--green:#00d632;--paper:#f2f2ef;--white:#fff;--ink:#141414;--muted:#53534f;--line:#dfdfda;--field:#f7f7f5;--focus:#12612b}
+:root{color-scheme:light;--green:#00d632;--paper:#f3f4f1;--white:#fff;--ink:#172019;--muted:#616961;--line:#e3e7e1;--field:#f7f8f5;--focus:#12612b;--s1:4px;--s2:8px;--s3:16px;--s4:24px;--s5:32px;--ease-out:cubic-bezier(.23,1,.32,1);--ease-in-out:cubic-bezier(.77,0,.175,1)}
 *{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.45 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-main{max-width:1040px;margin:auto;padding:24px clamp(14px,4vw,38px) calc(112px + env(safe-area-inset-bottom))}
-header{display:flex;justify-content:space-between;gap:16px;margin-bottom:22px;font-size:.86rem;font-weight:700;color:var(--muted)}
-h1,h2,h3,p{margin:0}
-h1{font-size:clamp(2.5rem,7vw,4.75rem);font-weight:700;line-height:1;letter-spacing:-.065em}
-h3{font-size:1rem;margin:0 0 10px}
-section:not([hidden]){display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:16px;align-items:start;animation:arrive 320ms cubic-bezier(.18,.8,.26,1) both}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{max-width:1120px;margin:auto;padding:calc(32px + env(safe-area-inset-top)) max(24px,env(safe-area-inset-right)) calc(32px + env(safe-area-inset-bottom)) max(24px,env(safe-area-inset-left))}
+header{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px;color:var(--muted);font-size:.875rem;font-weight:600}
+.brand-mark{display:grid;place-items:center;width:32px;height:32px;border-radius:8px;background:var(--green);color:var(--ink);font-size:24px;font-weight:750}
+h1,h2,h3,p{margin:0}h1{font-size:clamp(2rem,5vw,3rem);font-weight:700;line-height:1.1;letter-spacing:-.045em}h3{font-size:1rem;font-weight:650;margin-bottom:16px}
+section:not([hidden]){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start;margin-bottom:32px}
 section>h1,section>small,section>details{grid-column:1/-1}
-section>h1{margin-bottom:5px}
-nav{position:fixed;z-index:5;left:50%;bottom:calc(12px + env(safe-area-inset-bottom));translate:-50% 0;width:min(360px,calc(100% - 24px));padding:5px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;background:#ffffffef;backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:32px;box-shadow:0 4px 20px #0002}
-button,input,select{font:inherit;color:inherit;min-height:46px}
-button{cursor:pointer;border:0;background:var(--paper);border-radius:999px;padding:8px 14px;font-weight:700;transition:transform 260ms cubic-bezier(.2,.85,.3,1.2),background-color 160ms ease}
-button:active{transform:scale(.96);transition-duration:85ms}
-button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,summary:focus-visible,output:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
-nav button{background:transparent;color:var(--muted);display:flex;gap:8px;align-items:center;justify-content:center;font-size:.88rem;min-height:52px}
-nav button[aria-pressed=true]{background:var(--green);color:var(--ink)}
-.tab-icon{font-size:1.15rem;line-height:1}
-.primary{width:100%;background:#141414;color:white;min-height:52px}
-#add{width:100%;background:var(--paper)}
-form,output,details{min-width:0}
-form{background:var(--white);border-radius:25px;padding:clamp(13px,2.4vw,23px)}
-form>p{margin-top:12px}
-form h3:not(:first-child){margin-top:19px;padding-top:16px;border-top:1px solid var(--line)}
-.grid{display:grid}
-.grid label{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,50%);align-items:center;gap:8px;min-height:58px;font-size:.9rem;font-weight:600}
+section>h1{margin-bottom:8px}section>form{grid-column:1;grid-row:2}section>output{grid-column:2;grid-row:2}
+nav{isolation:isolate;position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:320px;max-width:100%;margin:0 0 32px auto;padding:4px;background:var(--white);border:1px solid var(--line);border-radius:32px;box-shadow:0 4px 16px #17201908}
+nav::before{content:"";position:absolute;z-index:-1;left:4px;top:4px;bottom:4px;width:calc((100% - 16px)/2);border-radius:32px;background:var(--green);transform:translateX(0);transition:transform 240ms var(--ease-in-out)}
+nav:has(#showHome[aria-pressed=true])::before{transform:translateX(calc(100% + 8px))}
+button,input,select{font:inherit;color:inherit;min-height:48px}button,a,summary{touch-action:manipulation}
+button,summary{-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+button{cursor:pointer;border:1px solid transparent;background:var(--paper);border-radius:24px;padding:8px 16px;font-weight:600;transition:transform 120ms var(--ease-out),background-color 120ms ease}
+button:active{transform:scale(.97);background:#dce3da}summary:active{color:var(--focus)}
+:is(button,input,select,a,summary,output,.scroll):focus-visible{outline:3px solid var(--focus);outline-offset:4px}
+nav button{background:transparent;color:var(--muted);display:flex;gap:8px;align-items:center;justify-content:center;font-size:.875rem}
+nav button[aria-pressed=true]{color:var(--ink)}nav button:active{background:transparent}
+.tab-icon{display:inline-flex}.tab-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.primary,#savePlan{background:var(--ink);color:white}.primary{width:100%;min-height:48px}.primary:active,#savePlan:active{background:#354637}
+#add{width:100%;border:1px dashed #c7cfc3;background:var(--field)}
+form,output,details{min-width:0;background:var(--white);border:1px solid var(--line);border-radius:24px}
+form{padding:24px}form>p{margin-top:16px}form h3:not(:first-child){margin-top:24px;padding-top:24px;border-top:1px solid var(--line)}
+.grid{display:grid}.grid label{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,48%);align-items:center;gap:16px;min-height:64px;font-size:.875rem;font-weight:500}
 .grid label+label{border-top:1px solid var(--line)}
-input,select{width:100%;min-width:0;border:1px solid var(--line);border-radius:12px;background:var(--field);padding:7px 9px;font-variant-numeric:tabular-nums}
-input[type=number]{text-align:right}
-input[type=date],select{font-size:.85rem}
-.scroll{overflow:auto;max-width:100%}
-table{border-collapse:collapse;width:100%;white-space:nowrap;font-variant-numeric:tabular-nums}
-th,td{text-align:right;padding:8px;border-bottom:1px solid var(--line)}
-th{font-size:.8rem;color:var(--muted)}
-th:first-child,td:first-child{text-align:left}
-#debtForm table,#debtForm tbody{display:block}
-#debtForm thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
-#debtForm tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:10px;background:var(--paper);border-radius:17px;margin-bottom:8px}
-#debtForm td{padding:0;text-align:left;border:0;min-width:0}
-#debtForm td:first-child{grid-column:span 2;grid-row:1}
-#debtForm td:last-child{grid-column:3;grid-row:1;justify-self:end;align-self:end}
-#debtForm td:last-child button{background:var(--white);font-size:.83rem}
-#debtForm .grid{margin-top:10px}
-.field-caption{display:block;font-size:.74rem;font-weight:650;color:var(--muted);margin-bottom:4px;white-space:normal}
-output{display:block;background:var(--white);border-radius:25px;padding:clamp(13px,2.4vw,22px);scroll-margin-top:12px}
-.payment-face{background:var(--green);border-radius:20px;text-align:center;padding:19px 12px;margin-bottom:14px;animation:arrive 280ms cubic-bezier(.18,.8,.26,1) both}
-.payment-face span{display:block;font-size:.87rem;font-weight:650}
-.payment-face strong{display:block;font-size:clamp(1.85rem,5vw,3.55rem);font-weight:750;line-height:1.12;letter-spacing:-.065em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.payment-face p{margin:6px 0 0;color:var(--ink)}
-.payment-breakdown{margin:0 0 15px;font-variant-numeric:tabular-nums}
-.payment-breakdown div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:.85rem}
-.payment-breakdown dt{min-width:0;overflow-wrap:anywhere}
-.payment-breakdown dd{margin:0;text-align:right;flex-shrink:0;font-weight:700}
-.payment-breakdown small{display:block}
-.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
-.stats div{background:var(--paper);border-radius:13px;padding:8px;font-size:.75rem;color:var(--muted)}
-.stats strong{display:block;color:var(--ink);font-size:1.08rem;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
-output h3{margin:14px 0 5px}
-output ol{padding-left:20px;margin:0}
-output p,output li,small{color:var(--muted);font-size:.84rem}
-details{border-radius:18px;background:var(--white);padding:0 15px}
-summary{cursor:pointer;min-height:48px;padding-block:12px;font-weight:700}
-details p{color:var(--muted);font-size:.85rem;margin-bottom:8px}
-#schedule input{min-width:106px}
-.bar{height:6px;background:var(--line);border-radius:4px;overflow:hidden}
-.bar span{display:block;height:100%;background:var(--green)}
-.summary-link{display:none}
-@keyframes arrive{from{opacity:0;transform:translateY(7px) scale(.99)}to{opacity:1;transform:none}}
-@media(min-width:761px){output{position:static}nav{position:sticky;top:10px;bottom:auto;left:auto;translate:none;margin:0 0 24px auto}}
-@media(max-width:760px){section:not([hidden]){grid-template-columns:minmax(0,1fr)}.summary-link{display:inline-flex;align-items:center;min-height:44px;color:var(--ink);font-size:.87rem;font-weight:650;letter-spacing:normal;text-underline-offset:4px}.form-actions{display:grid;gap:4px}}
-@media(prefers-reduced-motion:reduce){section:not([hidden]),.payment-face{animation:none}button{transition:none}button:active{transform:none}}
-@media(prefers-reduced-transparency:reduce),(prefers-contrast:more){nav{background:var(--white);backdrop-filter:none}}
-
-nav{isolation:isolate}nav::before{content:"";position:absolute;z-index:-1;left:5px;top:5px;bottom:5px;width:calc((100% - 14px)/2);border-radius:999px;background:var(--green);transform:translateX(0);transition:transform 360ms cubic-bezier(.2,.85,.3,1.08)}nav:has(#showHome[aria-pressed=true])::before{transform:translateX(calc(100% + 4px))}nav button[aria-pressed=true]{background:transparent}
-.payment-ring{display:grid;place-items:center;width:156px;height:156px;margin:14px auto;border-radius:50%;background:conic-gradient(var(--green) calc(var(--progress)*1%),var(--line) 0);position:relative}
-.payment-ring::before{content:"";position:absolute;inset:7px;border-radius:50%;background:white}
-.payment-ring span{position:relative;font-size:2rem;letter-spacing:-.04em;font-weight:750}
-.ring-label{text-align:center;margin-bottom:12px!important}
-@media(prefers-reduced-motion:reduce){nav::before{transition:none}}
-
-.payment-face{container-type:inline-size}
-.payment-face strong{font-size:clamp(1.35rem,9cqi,3rem);letter-spacing:-.035em;overflow-wrap:normal;white-space:nowrap}
-@media(max-width:760px){input,select,input[type=date]{font-size:16px}.grid label{grid-template-columns:minmax(0,1fr) minmax(0,48%)}body:has(input:focus,select:focus) nav{visibility:hidden}.payment-breakdown div{flex-wrap:wrap}main{padding-bottom:calc(130px + env(safe-area-inset-bottom))}}
-@media(max-width:360px){.grid label{grid-template-columns:1fr;gap:4px;padding:8px 0}}
+input,select{width:100%;min-width:0;border:1px solid var(--line);border-radius:8px;background:var(--field);padding:8px;font-size:16px;font-variant-numeric:tabular-nums}input[type=number]{text-align:right}
+input:user-invalid{border-color:#b43e30;background:#fff7f5}
+.scroll{overflow:auto;max-width:100%;overscroll-behavior-x:contain}
+table{border-collapse:collapse;width:100%;white-space:nowrap;font-variant-numeric:tabular-nums}th,td{text-align:right;padding:16px 8px;border-bottom:1px solid var(--line)}th{font-size:.75rem;color:var(--muted);font-weight:600}th:first-child,td:first-child{text-align:left}
+#debtForm table,#debtForm tbody{display:block}#debtForm thead{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+#debtForm tr{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 8px;padding:16px;background:var(--field);border:1px solid var(--line);border-radius:16px;margin-bottom:16px}
+#debtForm td{padding:0;text-align:left;border:0;min-width:0}#debtForm td:first-child{grid-column:span 2;grid-row:1}#debtForm td:last-child{grid-column:3;grid-row:1;justify-self:end;align-self:end}#debtForm td:last-child button{background:white;font-size:.75rem;padding:8px}
+#debtForm input{background:var(--white)}#debtForm .grid{margin-top:16px}.field-caption{display:block;font-size:.75rem;font-weight:500;color:var(--muted);margin-bottom:4px;white-space:normal}
+output{display:block;padding:16px;box-shadow:0 8px 32px #17201908;scroll-margin-top:24px}
+.payment-face{container-type:inline-size;background:var(--green);border-radius:16px;text-align:center;padding:32px 16px;margin-bottom:16px}
+.payment-face span{display:block;font-size:.875rem;font-weight:600}.payment-face strong{display:block;margin:8px 0;font-size:clamp(1.25rem,11cqi,3.5rem);font-weight:750;line-height:1.1;letter-spacing:-.045em;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.payment-face p{color:#183b20;font-size:.75rem}
+.payment-breakdown{margin:0 8px 16px;font-variant-numeric:tabular-nums}.payment-breakdown div{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 16px;padding:16px 0;border-bottom:1px solid var(--line);font-size:.875rem}.payment-breakdown dt{min-width:0;overflow-wrap:anywhere}.payment-breakdown dd{margin:0 0 0 auto;font-weight:650}.payment-breakdown small{display:block;margin-top:4px}
+.payment-insight{display:flex;align-items:center;gap:16px;padding:0 8px;margin-bottom:24px}.payment-ring{flex:none;width:48px;height:48px;border-radius:50%;background:conic-gradient(var(--green) calc(var(--progress)*1%),var(--line) 0);position:relative}.payment-ring::before{content:"";position:absolute;inset:4px;background:white;border-radius:50%}.ring-label{max-width:240px}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:24px}.stats div{background:var(--field);border-radius:8px;padding:16px;font-size:.75rem;color:var(--muted)}.stats strong{display:block;margin-top:4px;color:var(--ink);font-size:1.125rem;font-weight:650;letter-spacing:-.02em;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+output h3{margin:24px 8px 8px}output ol{padding-left:24px;margin:0 8px}output>p{margin:0 8px}output p,output li,small{color:var(--muted);font-size:.8125rem}output li+li{margin-top:8px}
+details{padding:0 24px}main>details{margin-top:16px}summary{display:flex;justify-content:space-between;align-items:center;gap:16px;cursor:pointer;min-height:64px;padding:16px 0;font-weight:600;list-style:none}summary::-webkit-details-marker{display:none}summary::after{content:"";width:8px;height:8px;flex:none;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);transition:transform 160ms var(--ease-out)}details[open]>summary::after{transform:rotate(225deg)}details[open]{padding-bottom:24px}details p{color:var(--muted);font-size:.875rem;margin-bottom:16px}#schedule input{min-width:112px}
+.bar{height:4px;background:var(--line);border-radius:4px;overflow:hidden;margin-top:4px}.bar span{display:block;height:100%;background:var(--green)}
+.scenario-actions{display:flex;align-items:end;flex-wrap:wrap;gap:16px;margin-bottom:24px}.scenario-actions label{flex:1 1 200px;font-size:.875rem;color:var(--muted)}.scenario-actions input{margin-top:8px}#planList p{display:flex;flex-wrap:wrap;gap:8px}#planList button:first-child{max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:left}
+#saveStatus{display:flex;align-items:center;gap:8px}#saveStatus::before{content:"";width:8px;height:8px;flex:none;border-radius:50%;background:var(--green)}#saveStatus[data-error=true]::before{background:#b43e30}
+.summary-link{display:none}.form-actions{display:grid;gap:8px}.edit-link{display:block;margin:0 8px 16px;color:var(--focus);font-size:.8125rem;font-weight:600;text-decoration-thickness:1px;text-underline-offset:4px;min-height:32px}
+@media(hover:hover) and (pointer:fine){button:hover{background:#e7ebe4}.primary:hover,#savePlan:hover{background:#354637}nav button:hover{background:#17201906}summary:hover{color:var(--focus)}}
+@media(max-width:760px){main{padding:calc(24px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) calc(112px + env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}header{margin-bottom:32px}section:not([hidden]){grid-template-columns:minmax(0,1fr);gap:16px}section>output{grid-column:1;grid-row:2}section>form{grid-column:1;grid-row:3}section>h1{margin-bottom:8px}form{padding:16px}nav{position:fixed;z-index:5;left:50%;bottom:calc(16px + env(safe-area-inset-bottom));transform:translateX(-50%);width:min(360px,calc(100% - 32px));margin:0;box-shadow:0 8px 32px #17201918}body:has(input:focus,select:focus) nav{visibility:hidden}.summary-link{display:inline-flex;align-items:center;min-height:48px;color:var(--focus);font-size:.875rem;font-weight:600;letter-spacing:normal;text-underline-offset:4px}.grid label{gap:8px}details{padding-inline:16px}.payment-face{padding:24px 16px}}
+@media(max-width:360px){.grid label{grid-template-columns:1fr;gap:8px;padding:8px 0}.stats div{padding:8px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}button:active{transform:none}}
+html.keyboard-nav nav::before,html.keyboard-nav summary::after{transition:none}
+@media(min-width:761px){.edit-link{display:none}}
+@media(max-width:760px){.edit-link{min-height:48px;display:flex;align-items:center;margin-bottom:0}}
 </style>
 <main>
-<header><span>Calculadoras financieras</span><span>USD</span></header>
-<nav aria-label="Calculadora"><button id="showDebt" aria-pressed="true"><span class="tab-icon" aria-hidden="true">▤</span>Deudas</button><button id="showHome" aria-pressed="false"><span class="tab-icon" aria-hidden="true">⌂</span>Hipoteca</button></nav>
+<header><span>Calculadoras financieras</span><span class="brand-mark" aria-hidden="true">$</span></header>
+<nav aria-label="Calculadora"><button id="showDebt" aria-pressed="true"><span class="tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M3 10h18M7 15h4"/></svg></span>Deudas</button><button id="showHome" aria-pressed="false"><span class="tab-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m3 11 9-8 9 8M5 10v11h14V10M9 21v-8h6v8"/></svg></span>Hipoteca</button></nav>
 <section id="debt">
 <h1>Plan de deudas</h1>
-<form id="debtForm"><h3>Tus deudas</h3>
-<div class="scroll"><table><thead><tr><th>Deuda</th><th>Saldo (USD)</th><th>Tasa anual (%)</th><th>Mínimo (USD)</th><th>Quitar</th></tr></thead><tbody id="debts"></tbody></table></div>
+<output id="debtResult" tabindex="-1" aria-label="Resultados de endeudamiento" aria-live="polite"></output>
+<form id="debtForm" tabindex="-1"><h3>Tus deudas</h3>
+<div class="scroll"><table><thead><tr><th>Deuda</th><th>Saldo ($)</th><th>Tasa anual (%)</th><th>Mínimo ($)</th><th>Quitar</th></tr></thead><tbody id="debts"></tbody></table></div>
 <p><button id="add" type="button">Agregar deuda</button></p>
 <div class="grid"><label>Estrategia<select id="strategy"><option value="rate">Avalancha · mayor tasa primero</option><option value="balance">Bola de nieve · menor saldo primero</option></select></label>
-<label>Pago extra mensual (USD)<input id="extra" inputmode="decimal" type="number" min="0" step="0.01" value="0"></label></div>
+<label>Pago extra mensual ($)<input id="extra" inputmode="decimal" type="number" min="0" step="0.01" value="0"></label></div>
 <p class="form-actions"><button class="primary">Calcular plan</button><a class="summary-link" href="#debtResult">Ver resultados ↓</a></p>
 </form>
-<output id="debtResult" tabindex="-1" aria-label="Resultados de endeudamiento" aria-live="polite"></output>
+
 <small>El mínimo se mantiene fijo por deuda. La simulación aplica interés mensual y reasigna los pagos liberados. Excluye comisiones y cambios de tasa.</small>
 </section>
 <section id="home" hidden>
-<h1>Hipoteca <a class="summary-link" href="#homeResult">Ver resultados ↓</a></h1>
-<form id="mortgage">
+<h1>Tu hipoteca</h1>
+<output id="homeResult" tabindex="-1" aria-label="Resultados de hipoteca"></output>
+<form id="mortgage" tabindex="-1">
 <h3>Datos del crédito</h3><div class="grid" id="loanFields"></div>
 <h3>Aportaciones a capital</h3><div class="grid" id="extraFields"></div>
 <h3>Seguros</h3><div class="grid" id="insuranceFields"></div>
 </form>
-<output id="homeResult" tabindex="-1" aria-label="Resultados de hipoteca"></output>
+
 <details><summary>Intereses y capital por año</summary><div class="scroll" id="years" tabindex="0" role="region" aria-label="Intereses y capital por año"></div></details>
 <details><summary>Tabla completa de pagos</summary><p>Edita el aporte de un mes para reemplazar el importe programado. Borra el valor para volver a la regla mensual y anual.</p><div class="scroll" id="schedule" tabindex="0" role="region" aria-label="Tabla completa de pagos"></div></details>
 <small>Interés sobre saldo con base de 360 días. El primer período usa días reales y los siguientes usan 30.4 días. Consulta las condiciones de tu banco para conocer el cálculo contractual.</small>
 </section>
-<details><summary>Mis escenarios</summary><p id="saveStatus" role="status">Guardado en este dispositivo.</p><label>Nombre<input id="planName" maxlength="80"></label><button id="savePlan">Guardar escenario</button> <button id="exportPlan">Descargar tabla CSV</button><div id="planList"></div><div class="scroll" id="comparison"></div></details><details><summary>Instalar en iPhone</summary><p>En Safari, abre Compartir → Agregar a pantalla de inicio. Abre la app con internet una vez para preparar el modo sin conexión.</p><p id="offlineStatus" role="status">Preparando acceso sin conexión…</p><p>Los datos se guardan en este navegador. Borrar los datos del sitio elimina tus escenarios. La app de inicio y Safari pueden usar almacenamiento separado.</p></details></main>
+<details><summary>Mis escenarios</summary><p id="saveStatus" role="status">Guardado en este dispositivo.</p><div class="scenario-actions"><label>Nombre del escenario<input id="planName" maxlength="80" placeholder="Mi plan"></label><button id="savePlan">Guardar escenario</button><button id="exportPlan">Descargar tabla CSV</button></div><div id="planList"></div><div class="scroll" id="comparison"></div></details><details><summary>Instalar en iPhone</summary><p>En Safari, abre Compartir → Agregar a pantalla de inicio. Abre la app con internet una vez para preparar el modo sin conexión.</p><p id="offlineStatus" role="status">Preparando acceso sin conexión…</p><p>Los datos se guardan en este navegador. Borrar los datos del sitio elimina tus escenarios. La app de inicio y Safari pueden usar almacenamiento separado.</p></details></main>
 <script>
 
 const motionPreference = matchMedia('(prefers-reduced-motion: reduce)');
-const resultMotion = new WeakMap();
+// Values appear immediately; only deliberate view changes receive motion.
 function animateResults(output, fraction, label) {
-  const previous = resultMotion.get(output);
-  if(previous) cancelAnimationFrame(previous);
+  const insight = document.createElement('div');
+  insight.className = 'payment-insight';
   const ring = document.createElement('div');
   ring.className = 'payment-ring';
   ring.setAttribute('aria-hidden','true');
-  const value = document.createElement('span');
-  ring.append(value);
+  ring.style.setProperty('--progress',Math.max(0,Math.min(100,fraction*100)));
   const caption = document.createElement('p');
   caption.className = 'ring-label';
-  caption.textContent = Math.round(fraction * 100) + '% · ' + label;
-  const breakdown = output.querySelector('.payment-breakdown');
-  breakdown.after(ring,caption);
-  const percent = Math.max(0,Math.min(100,fraction*100));
-  const render = progress => {
-    ring.style.setProperty('--progress', percent * progress);
-    value.textContent = Math.round(percent * progress) + '%';
-  };
-  if(motionPreference.matches) { render(1); return; }
-  const start = performance.now();
-  const tick = now => {
-    const t = Math.min(1,(now-start)/550);
-    render(1-Math.pow(1-t,3));
-    if(t<1 && ring.isConnected) resultMotion.set(output,requestAnimationFrame(tick));
-  };
-  resultMotion.set(output,requestAnimationFrame(tick));
-  for(const [index,row] of [...breakdown.children].entries()){
-    row.animate([{opacity:0,transform:'translateY(12px) scale(.98)'},{opacity:1,transform:'none'}],
-      {duration:340,delay:Math.min(index,5)*35,easing:'cubic-bezier(.2,.8,.3,1)',fill:'backwards'});
-  }
+  caption.textContent = Math.round(fraction*100)+'% · '+label;
+  insight.append(ring,caption);
+  output.querySelector('.payment-breakdown').after(insight);
+  const edit = document.createElement('a');
+  edit.className = 'edit-link';
+  edit.href = output.id === 'homeResult' ? '#mortgage' : '#debtForm';
+  edit.textContent = 'Ajustar mi plan ↓';
+  output.querySelector('.payment-face').after(edit);
 }
-
+document.addEventListener('keydown',()=>document.documentElement.classList.add('keyboard-nav'),true);
+document.addEventListener('pointerdown',()=>document.documentElement.classList.remove('keyboard-nav'),true);
 const get = id => document.getElementById(id);
 const num = id => Number(get(id).value);
-const money = (value, decimals = 0) => new Intl.NumberFormat('es-MX', {style:'currency', currency:'USD', currencyDisplay:'code', minimumFractionDigits:decimals, maximumFractionDigits:decimals}).format(value);
+const money = (value, decimals = 0) => new Intl.NumberFormat('es-MX', {style:'currency', currency:'USD', currencyDisplay:'narrowSymbol', minimumFractionDigits:decimals, maximumFractionDigits:decimals}).format(value);
 const months = Array.from({length:12}, (_,i) => new Intl.DateTimeFormat('es-MX',{month:'long',timeZone:'UTC'}).format(new Date(Date.UTC(2020,i,1))));
 const duration = n => n < 12 ? n + (n === 1 ? ' mes' : ' meses') : Math.floor(n/12) + (n < 24 ? ' año' : ' años') + (n%12 ? ' y ' + duration(n%12) : '');
 const stats = pairs => '<div class="stats">' + pairs.map(([label,value]) => '<div>'+label+'<strong>'+value+'</strong></div>').join('') + '</div>';
@@ -178,7 +137,7 @@ function addDebt(values = ['', '', '', '']) {
     const caption = document.createElement('span');
     caption.className = 'field-caption';
     caption.setAttribute('aria-hidden','true');
-    caption.textContent = ['Deuda','Saldo (USD)','Tasa anual (%)','Mínimo (USD)'][i];
+    caption.textContent = ['Deuda','Saldo ($)','Tasa anual (%)','Mínimo ($)'][i];
     cell.append(caption,input);
   });
   const remove = document.createElement('button');
@@ -281,7 +240,7 @@ get('debtForm').onsubmit = event => {
   if (event.submitter && matchMedia("(max-width: 760px)").matches) out.focus();
 };
 const numericField = (id,label,value,min,max,step='0.01') => '<label>'+label+'<input required inputmode="decimal" type="number" id="'+id+'" value="'+value+'" min="'+min+'" max="'+max+'" step="'+step+'"></label>';
-get('loanFields').innerHTML = numericField('principal','Monto del crédito (USD)',1976000,1,1e12)
+get('loanFields').innerHTML = numericField('principal','Monto del crédito ($)',1976000,1,1e12)
   + numericField('rate','Tasa anual (%)',10,0,100)
   + numericField('term','Plazo en años',20,1,50,1)
   + '<label>Fecha de desembolso<input required type="date" id="start" min="1900-01-01" max="2200-12-31"></label>'
@@ -289,11 +248,11 @@ get('loanFields').innerHTML = numericField('principal','Monto del crédito (USD)
 const today = new Date();
 get('start').value = [today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-');
 get('extraFields').innerHTML = '<label>Objetivo<select id="mode"><option value="short">Terminar antes</option><option value="recast">Reducir la mensualidad</option></select></label>'
-  + numericField('monthly','Aporte mensual (USD)',1000,0,1e12)
-  + numericField('annual','Aporte anual (USD)',20000,0,1e12)
+  + numericField('monthly','Aporte mensual ($)',1000,0,1e12)
+  + numericField('annual','Aporte anual ($)',20000,0,1e12)
   + '<label>Mes del aporte anual<select id="annualMonth">'+months.map((m,i)=>'<option value="'+i+'"'+(i===11?' selected':'')+'>'+m+'</option>').join('')+'</select></label>';
 get('insuranceFields').innerHTML = numericField('life','Seguro de vida anual (%)',0,0,100)
-  + numericField('damage','Seguro de daños mensual (USD)',0,0,1e12);
+  + numericField('damage','Seguro de daños mensual ($)',0,0,1e12);
 const overrides = new Map();
 const dateFormat = new Intl.DateTimeFormat('es-MX',{day:'2-digit',month:'short',year:'numeric',timeZone:'UTC'});
 function mortgagePlan(config, useExtras) {

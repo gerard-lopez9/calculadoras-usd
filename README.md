@@ -1,12 +1,9 @@
 # Calculadoras de deuda e hipoteca
 
-Abre index.html en tu navegador para usar ambas calculadoras sin conexión.
+Calculadoras independientes en dólares estadounidenses, mostrados con $. Sin dependencias externas.
 
-## Publicar en GitHub Pages
+Los números y escenarios se guardan automáticamente en este navegador mediante localStorage. La clave `calculadoras-usd-v1` se conserva entre actualizaciones. No se sincronizan entre dispositivos. Borrar datos del sitio elimina lo guardado.
 
-1. Crea un repositorio en GitHub.
-2. Sube index.html a la raíz de la rama main.
-3. En Settings → Pages, elige Deploy from a branch, selecciona main y / (root), y guarda.
-4. Abre el enlace que GitHub muestra en Settings → Pages cuando termine el despliegue.
+Abre la versión publicada con internet una vez para preparar el acceso sin conexión. En iPhone, usa Safari → Compartir → Agregar a pantalla de inicio, y abre el icono con internet antes de usarlo sin conexión.
 
-La página usa HTML, CSS y JavaScript sin dependencias externas. Los datos ingresados se mantienen en memoria en la pestaña y se borran al recargarla.
+GitHub Pages publica los archivos de esta carpeta desde la raíz de main. Publica juntos index.html, features.js, sw.js, manifest.webmanifest e icon.png. Incrementa la versión de caché cuando cambien los archivos de la app.

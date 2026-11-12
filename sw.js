@@ -1,4 +1,4 @@
-const CACHE = 'calculadoras-offline-v1';
+const CACHE = 'calculadoras-offline-v2';
 const FILES = ['./','./index.html','./features.js','./manifest.webmanifest','./icon.png'];
 self.addEventListener('install',event=>event.waitUntil(
   caches.open(CACHE).then(cache=>cache.addAll(FILES)).then(()=>self.skipWaiting())

@@ -25,8 +25,10 @@ function restorePlan(state) {
 function persistPlan() {
   try {
     localStorage.setItem(storageKey,JSON.stringify({current:capturePlan(),scenarios:savedScenarios}));
+    get('saveStatus').dataset.error='false';
     get('saveStatus').textContent = 'Guardado automáticamente en este dispositivo.';
   } catch {
+    get('saveStatus').dataset.error='true';
     get('saveStatus').textContent = 'El navegador no permite guardar. Descarga tu tabla antes de cerrar.';
   }
 }
@@ -61,7 +63,7 @@ function renderSavedPlans() {
   const body=comparison.createTBody();
   for(const plan of savedScenarios){
     const row=body.insertRow();
-    for(const value of [plan.name,plan.summary.type,plan.summary.time,plan.summary.interest,plan.summary.total]) row.insertCell().textContent=value;
+    for(const value of [plan.name,plan.summary.type,plan.summary.time,plan.summary.interest,plan.summary.total]) row.insertCell().textContent=typeof value==='string'&&value!==plan.name?value.replace(/USD[\s\u00a0]*/g,'$'):value;
   }
   get('comparison').replaceChildren(comparison);
 }
@@ -75,11 +77,17 @@ try {
 renderSavedPlans();
 document.addEventListener('input',event=>{if(event.target.closest('form'))persistPlan();});
 document.addEventListener('change',event=>{if(event.target.closest('#schedule'))persistPlan();});
-document.addEventListener('click',event=>{if(event.target.closest('#debts button,#add,nav button'))persistPlan();});
+// Capture before a removed debt row leaves the document; save after its handler.
+document.addEventListener('click',event=>{if(event.target.closest('#debts button,#add,nav button'))setTimeout(persistPlan,0);},true);
 get('savePlan').onclick=()=>{
   const summary=currentSummary();if(!summary)return;
   savedScenarios.push({name:get('planName').value.trim()||'Plan '+(savedScenarios.length+1),state:capturePlan(),summary});
   persistPlan();renderSavedPlans();
+  get('saveStatus').textContent='Escenario guardado en este dispositivo.';
+  if(!motionPreference.matches&&!document.documentElement.classList.contains('keyboard-nav')){
+    get('saveStatus').getAnimations().forEach(animation=>animation.cancel());
+    get('saveStatus').animate([{opacity:.5},{opacity:1}],{duration:180,easing:'cubic-bezier(.23,1,.32,1)'});
+  }
 };
 get('exportPlan').onclick=()=>{
   if(!currentSummary())return;
@@ -93,8 +101,8 @@ get('exportPlan').onclick=()=>{
     const debts=capturePlan().debts.map(([name,balance,rate,minimum])=>({name,balance:Number(balance),rate:Number(rate),minimum:Number(minimum)})).filter(d=>d.balance>0);
     const plan=payoff(debts,num('extra'),get('strategy').value);
     if(!plan)return;
-    rows=[['Mes','Saldo inicial USD','Interés USD','Pago USD','Saldo final USD'],...plan.schedule];
-    rows.push(['Estrategia',get('strategy').selectedOptions[0].textContent],['Extra mensual USD',get('extra').value]);
+    rows=[['Mes','Saldo inicial $','Interés $','Pago $','Saldo final $'],...plan.schedule];
+    rows.push(['Estrategia',get('strategy').selectedOptions[0].textContent],['Extra mensual $',get('extra').value]);
     rows.push(['Resultado',get('debtResult').innerText]);
   }
   const safeCell=value=>{
@@ -108,7 +116,8 @@ get('exportPlan').onclick=()=>{
   setTimeout(()=>URL.revokeObjectURL(url),10000);
 };
 if('serviceWorker' in navigator && location.protocol==='https:'){
-  navigator.serviceWorker.register('./sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{
+  navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(()=>navigator.serviceWorker.ready).then(()=>{
     get('offlineStatus').textContent='Listo para usar sin conexión en este dispositivo.';
   }).catch(()=>{get('offlineStatus').textContent='No se pudo preparar el modo sin conexión. Abre de nuevo con internet.';});
 }else get('offlineStatus').textContent='Abre la versión publicada para activar el modo sin conexión.';
+
